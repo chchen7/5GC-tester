@@ -1,4 +1,4 @@
-./free5gc
-./gtp5g
-./open5gs
-./result-*
+free5gc/
+gtp5g/
+open5gs/
+result-*

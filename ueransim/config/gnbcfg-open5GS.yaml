@@ -1,0 +1,21 @@
+mcc: '208'          # Mobile Country Code value
+mnc: '93'           # Mobile Network Code value (2 or 3 digits)
+nci: {GNB_NCI}
+idLength: 32
+tac: 1
+
+linkIp: gnb.open5gs.org   # gNB 內部通訊
+ngapIp: gnb.open5gs.org # gNB 在 Docker 網路的 IP
+gtpIp: gnb.open5gs.org  # gNB 在 Docker 網路的 IP
+# 核心網 AMF 的位置
+amfConfigs:
+  - address: 172.22.0.10
+    port: 38412
+
+# List of supported S-NSSAIs by this gNB
+slices:
+  - sst: 1
+    sd: 1
+
+# Indicates whether or not SCTP stream number errors should be ignored.
+ignoreStreamIds: true
