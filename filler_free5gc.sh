@@ -29,7 +29,6 @@ var cols = [
     "policyData.ues.smData"
 ];
 
-// 清空舊資料
 cols.forEach(function(c) { db.getCollection(c).deleteMany({}); });
 
 var num_ues = $TOTAL_COUNT; 
