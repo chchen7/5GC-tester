@@ -12,7 +12,6 @@ while getopts "n:t:i:" opt; do
   esac
 done
 
-# 2. 參數檢查
 if ! [[ "$UE_COUNT" =~ ^[0-9]+$ ]]; then
     echo "[ERROR] UE count must be a number: $UE_COUNT" >&2
     exit 1

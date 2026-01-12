@@ -4,10 +4,9 @@ nci: {GNB_NCI}
 idLength: 32
 tac: 1
 
-linkIp: gnb.open5gs.org   # gNB 內部通訊
-ngapIp: gnb.open5gs.org # gNB 在 Docker 網路的 IP
-gtpIp: gnb.open5gs.org  # gNB 在 Docker 網路的 IP
-# 核心網 AMF 的位置
+linkIp: gnb.open5gs.org   
+ngapIp: gnb.open5gs.org 
+gtpIp: gnb.open5gs.org 
 amfConfigs:
   - address: 172.22.0.10
     port: 38412

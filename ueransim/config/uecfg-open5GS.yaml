@@ -27,7 +27,7 @@ imei: '356938035643803'
 imeiSv: '4370816125816151'
 
 gnbSearchList:
-  - gnb.open5gs.org    # 指向上面 gNB 的 IP
+  - gnb.open5gs.org   
 
 # UAC Access Identities Configuration
 uacAic:
