@@ -28,7 +28,11 @@ for e in $(seq 2 3); do
                     cd ..
                 fi
                 cd $corepath
-                docker compose up -d
+                if [ "$c" -eq 0 ]; then
+                    docker compose -f docker-compose-build.yaml up -d
+                elif [ "$c" -eq 1 ]; then
+                    docker compose up -d
+                fi
                 cd ..
                 sleep 15
 
