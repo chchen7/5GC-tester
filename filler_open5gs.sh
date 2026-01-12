@@ -23,7 +23,6 @@ while (i <= $TOTAL_COUNT) {
 
     db.subscribers.insert({
         "imsi": targetImsi,
-        // 關鍵修正：所有整數強制轉型為 Int32
         "subscribed_rau_tau_timer": NumberInt(12),
         "network_access_mode": NumberInt(2),
         "subscriber_status": NumberInt(0),
@@ -61,7 +60,7 @@ while (i <= $TOTAL_COUNT) {
             "amf": "8000",
             "op": null,
             "opc": "E8ED289D EBA952E4 283B54E8 8E6183CA",
-            "sqn": NumberLong(200000)    // SQN 必須是 Int64
+            "sqn": NumberLong(200000)  
         },
         "msisdn": [],
         "schema_version": NumberInt(1),

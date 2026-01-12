@@ -36,8 +36,6 @@ var num_ues = $TOTAL_COUNT;
 var plmn = "20893"; 
 
 for (var i = 1; i <= num_ues; i++) {
-    // 修正：產生 15 位 IMSI (例如 imsi-208930000000001)
-    // plmn(5位) + suffix(10位) = 15位
     var imsiSuffix = i.toString().padStart(10, '0');
     var ueId = "imsi-" + plmn + imsiSuffix;
     
