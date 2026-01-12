@@ -44,7 +44,7 @@ for (var i = 1; i <= num_ues; i++) {
         "ueId": ueId,
         "authenticationMethod": "5G_AKA",
         "authenticationManagementField": "8000",
-        "sequenceNumber": "16f3b3f70fc2", 
+        "sequenceNumber": "000000000023", 
         "permanentKey": {
             "permanentKeyValue": "8baf473f2f8fd09487cccbd7097c6862",
             "encryptionKey": 0,

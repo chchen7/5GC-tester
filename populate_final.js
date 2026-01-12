@@ -11,12 +11,10 @@ var cols = [
 // 清空舊資料
 cols.forEach(function(c) { db.getCollection(c).deleteMany({}); });
 
-var num_ues = 1100; 
+var num_ues = 100; 
 var plmn = "20893"; 
 
 for (var i = 1; i <= num_ues; i++) {
-    // 修正：產生 15 位 IMSI (例如 imsi-208930000000001)
-    // plmn(5位) + suffix(10位) = 15位
     var imsiSuffix = i.toString().padStart(10, '0');
     var ueId = "imsi-" + plmn + imsiSuffix;
     
@@ -25,7 +23,7 @@ for (var i = 1; i <= num_ues; i++) {
         "ueId": ueId,
         "authenticationMethod": "5G_AKA",
         "authenticationManagementField": "8000",
-        "sequenceNumber": "16f3b3f70fc2", 
+        "sequenceNumber": "000000000023", 
         "permanentKey": {
             "permanentKeyValue": "8baf473f2f8fd09487cccbd7097c6862",
             "encryptionKey": 0,

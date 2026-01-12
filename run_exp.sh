@@ -1,5 +1,5 @@
 #!/bin/bash
-for e in $(seq 2 3); do
+for e in $(seq 1 3); do
     for c in 0 1; do
         echo "Run core $c tests (exec $e)"
         for w in 500 400 300 200 100; do
