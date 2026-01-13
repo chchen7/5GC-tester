@@ -1,4 +1,12 @@
 #!/bin/bash
+DOCKER_API_TCP="tcp://0.0.0.0:2375"
+if ! cat /lib/systemd/system/docker.service | grep "$DOCKER_API_TCP" 2>&1 > /dev/null; then
+
+    sed -i "/^ExecStart=/ s|$| -H $DOCKER_API_TCP|" /lib/systemd/system/docker.service
+
+    systemctl daemon-reload
+    service docker restart
+fi
 for e in $(seq 1 3); do
     for c in 0 1; do
         echo "Run core $c tests (exec $e)"
