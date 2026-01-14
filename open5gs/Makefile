@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 IMAGE_NAME = docker_open5gs
-BUILD_PATH = open5gs/base
+BUILD_PATH = base
 
 .PHONY: build
 
