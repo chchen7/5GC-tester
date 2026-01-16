@@ -99,6 +99,7 @@ for e in $(seq 1 11); do
                 docker container prune -f
                 docker network prune -f
                 cd ..
+                sudo rm -rf open5gs/log
                 sleep 15
             done
         done
