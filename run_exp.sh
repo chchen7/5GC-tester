@@ -8,7 +8,7 @@ if ! cat /lib/systemd/system/docker.service | grep "$DOCKER_API_TCP" 2>&1 > /dev
     service docker restart
 fi
 
-for e in $(seq 2 2); do
+for e in $(seq 1 11); do
     for c in 0 1; do
         echo "Run core $c tests (exec $e)"
         for w in 500 400 300 200 100; do
@@ -38,7 +38,7 @@ for e in $(seq 2 2); do
                 fi
                 cd $corepath
                 if [ "$c" -eq 0 ]; then
-                    docker compose -f docker-compose-build.yaml up -d
+                    docker compose -f docker-compose-build.yaml up --build -d
                 elif [ "$c" -eq 1 ]; then
                     docker compose up -d
                 fi
