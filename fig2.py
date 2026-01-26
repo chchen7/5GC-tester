@@ -29,7 +29,8 @@ MAX_AXIS_COL = 2
 plt.rcParams["figure.figsize"] = (14, 20)
 plt.rcParams['figure.subplot.hspace'] = 0.5
 plt.rcParams['figure.subplot.wspace'] = 0.3
-figure, axis = plt.subplots(MAX_AXIS_ROW, MAX_AXIS_COL)
+
+figure, axis = plt.subplots(MAX_AXIS_ROW, MAX_AXIS_COL, sharey='row', sharex='row')
 
 for core_idx, core in enumerate(cores):
     for delay_idx, delay in enumerate(delays):
@@ -42,9 +43,7 @@ for core_idx, core in enumerate(cores):
             all_dataplaneready = []
             
             for exe in execs:
-
                 one_exec_data = np.full(MAX_UE_COUNT, np.nan)
-                
                 file_path = base_filename.format(exe, core, delay, exp)
                 
                 if os.path.exists(file_path):
@@ -73,10 +72,7 @@ for core_idx, core in enumerate(cores):
                 avg_dp = np.nanmean(all_dataplaneready, axis=0)
 
             theoretical_ts = np.arange(MAX_UE_COUNT) * (delay / 1000.0)
-            
-
             smooth_dp = sliding_window_mean(avg_dp, window=5)
-
             smooth_ts = theoretical_ts[len(theoretical_ts) - len(smooth_dp):]
             
             ax.scatter(
