@@ -58,7 +58,7 @@ while (i <= $TOTAL_COUNT) {
             "amf": "8000",
             "op": null,
             "opc": "E8ED289DEBA952E4283B54E88E6183CA",
-            "sqn": NumberLong("200000")  
+            "sqn": NumberLong("000000")  
         },
         "msisdn": [],
         "schema_version": NumberInt(1),
