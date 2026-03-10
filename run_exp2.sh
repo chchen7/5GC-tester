@@ -10,8 +10,6 @@ if ! cat /lib/systemd/system/docker.service | grep "$DOCKER_API_TCP" 2>&1 > /dev
     systemctl daemon-reload
     service docker restart
 fi
-simulator=0 # 0: ueransim 1: free-ran-ue
-
 
 for e in $(seq 1 5); do
     for c in 0 1; do
@@ -27,13 +25,6 @@ for e in $(seq 1 5); do
                     yamlfile="./docker-compose-open5gs.yaml"
                     corepath="open5gs"
                     filler="./filler_open5gs.sh"
-                fi
-                if [ "$simulator" -eq 0 ]; then
-                    sim="ueransim"
-                    load="generate-uer.py"
-                elif [ "$simulator" -eq 1 ]; then
-                    sim="fru-compose"
-                    load="generate-fru.py"
                 fi
                 echo ">>> Cleaning up old containers and data..."
                 cd tester
@@ -81,12 +72,8 @@ for e in $(seq 1 5); do
                 sleep 5
 
                 echo ">>> Launching $i gnbs..."
-                cd $sim
-                if [ "$simulator" -eq 0 ]; then
-                    docker compose -f "$yamlfile" up -d --scale ueransim-gnb=$i --build
-                elif [ "$simulator" -eq 1 ]; then
-                    docker compose -f "$yamlfile" up -d --scale gnb=$i --scale ue=$i
-                fi
+                cd ueransim
+                docker compose -f "$yamlfile" up -d --scale ueransim-gnb=$i
                 cd ..
 
                 cd tester
@@ -109,7 +96,7 @@ for e in $(seq 1 5); do
                 docker exec influxdb sh -c "influx query 'from(bucket:\"database\") |> range(start:-5m)' --raw" > result-logs-influxdb-$e-$c-$w-$i.csv
 
                 echo ">>> Cleaning up old containers and data..."
-                cd $sim
+                cd ueransim
                 docker compose -f "$yamlfile" down
                 cd ..
                 cd tester
