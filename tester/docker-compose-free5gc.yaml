@@ -1,0 +1,17 @@
+version: "3"
+services:
+  iperf:
+    image: mlabbe/iperf:latest
+    container_name: iperf
+    ports:
+      - 5001:5001
+    command: -s
+    networks:
+      default:
+        aliases:
+          - iperf.free5gc.org
+
+networks:
+  default:
+    external: true
+    name: free5gc-compose_privnet

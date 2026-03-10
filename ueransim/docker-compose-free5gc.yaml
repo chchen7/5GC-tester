@@ -1,0 +1,22 @@
+services:
+  ueransim-gnb:
+    build: . 
+    command: ./gnb_init.sh
+    volumes:
+      - ./config/uecfg-free5GC.yaml:/ueransim/config/uecfg.yaml
+      - ./config/gnbcfg-free5GC.yaml:/ueransim/config/gnbcfg.yaml
+      - ./launch_ue.sh:/ueransim/launch_ue.sh
+      - ./gnb_init.sh:/ueransim/gnb_init.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun"
+    networks:
+      default:
+        aliases:
+          - gnb.free5gc.org
+
+networks:
+  default:
+    external: true
+    name: free5gc-compose_privnet

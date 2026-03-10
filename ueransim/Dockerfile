@@ -38,3 +38,6 @@ COPY --from=builder /root/UERANSIM/build/nr-binder binder/
 COPY --from=builder /root/UERANSIM/build/libdevbnd.so binder/
 
 VOLUME [ "/ueransim/config" ]
+
+RUN apt-get update && apt-get install -y iperf \
+    && rm -rf /var/lib/apt/lists/*
