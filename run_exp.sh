@@ -10,12 +10,14 @@ if ! cat /lib/systemd/system/docker.service | grep "$DOCKER_API_TCP" 2>&1 > /dev
     systemctl daemon-reload
     service docker restart
 fi
+simulator=0 # 0: ueransim 1: free-ran-ue
+
 
 for e in $(seq 1 10); do
     for c in 0 1; do
         echo "Run core $c tests (exec $e)"
-        for w in 500 400 300 200 100; do
-            for i in 1 3 5 7 9 11; do
+        for w in 0; do
+            for i in 11; do
                 echo "Running experiment $i (w=$w)"
                 if [ "$c" -eq 0 ]; then
                     yamlfile="./docker-compose-free5gc.yaml"
@@ -25,6 +27,13 @@ for e in $(seq 1 10); do
                     yamlfile="./docker-compose-open5gs.yaml"
                     corepath="open5gs"
                     filler="./filler_open5gs.sh"
+                fi
+                if [ "$simulator" -eq 0 ]; then
+                    sim="ueransim"
+                    load="generate-uer.py"
+                elif [ "$simulator" -eq 1 ]; then
+                    sim="fru-compose"
+                    load="generate-fru.py"
                 fi
                 echo ">>> Cleaning up old containers and data..."
                 cd tester
@@ -71,24 +80,30 @@ for e in $(seq 1 10); do
                 sleep 5
 
                 echo ">>> Launching $i gnbs..."
-                cd ueransim
-                docker compose -f "$yamlfile" up -d --scale ueransim-gnb=$i
+                cd $sim
+                if [ "$simulator" -eq 0 ]; then
+                    docker compose -f "$yamlfile" up -d --scale ueransim-gnb=$i --build
+                elif [ "$simulator" -eq 1 ]; then
+                    docker compose -f "$yamlfile" up -d --scale gnb=$i --scale ue=$i
+                fi
                 cd ..
-
+                if [ "$c" -eq 0 ]; then
+                    timeout 1 docker exec ueransim-ueransim-gnb-1 ./nr-ue -c config/uecfg.yaml
+                fi
                 cd tester
                 echo ">>> Launching $i UEs for $w seconds..."
                 make launch N=$i U=100 T=$w
 
-                sleep 120
+                sleep 150
 
                 cd ..
                 echo ">>> [5/5] Collecting experiment $i data"
-                python3 generate.py --gnb-start 1 --gnb-count $i
-                mv ueransim_metrics.csv result-logs-$e-$c-$w-$i.csv
+                python3 $load --gnb-start 1 --gnb-count $i
+                mv ue_metrics.csv result-logs-$e-$c-$w-$i.csv
                 docker exec influxdb sh -c "influx query 'from(bucket:\"database\") |> range(start:-5m)' --raw" > result-logs-influxdb-$e-$c-$w-$i.csv
-
+                read
                 echo ">>> Cleaning up old containers and data..."
-                cd ueransim 
+                cd $sim
                 docker compose -f "$yamlfile" down
                 cd ..
                 cd $corepath
