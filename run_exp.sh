@@ -17,11 +17,11 @@ for e in $(seq 1 3); do
             for i in 1 3 5 7 9 11; do
                 echo "Running experiment $i (w=$w)"
                 if [ "$c" -eq 0 ]; then
-                    yamlfile="./docker-compose-free5GC.yaml"
+                    yamlfile="./docker-compose-free5gc.yaml"
                     corepath="free5gc"
                     filler="./filler_free5gc.sh"
                 elif [ "$c" -eq 1 ]; then
-                    yamlfile="./docker-compose-open5GS.yaml"
+                    yamlfile="./docker-compose-open5gs.yaml"
                     corepath="open5gs"
                     filler="./filler_open5gs.sh"
                 fi
