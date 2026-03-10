@@ -4,7 +4,7 @@ FROM bitnami/minideb:bullseye
 LABEL description="Free5GC open source 5G Core Network" \
     version="Stage 3"
 
-ENV F5GC_MODULE upf
+ENV F5GC_MODULE free5gc-upfd
 ENV DEBIAN_FRONTEND noninteractive
 ARG DEBUG_TOOLS
 
@@ -18,13 +18,17 @@ RUN apt-get update \
 
 # Set working dir
 WORKDIR /free5gc
-RUN mkdir -p config/ log/
+RUN mkdir -p ${F5GC_MODULE}/config/
 
-# Copy executable
-COPY --from=builder /free5gc/${F5GC_MODULE} ./
+# Copy executable and default configuration
+COPY --from=builder /free5gc/${F5GC_MODULE} ./${F5GC_MODULE}/
 
-# Config files volume
-VOLUME [ "/free5gc/config" ]
+# Copy linked libs
+COPY --from=builder /free5gc/libgtp5gnl.so.0 /usr/local/lib
+COPY --from=builder /free5gc/liblogger.so /usr/local/lib
 
-# Exposed ports
-EXPOSE 8000
+# Move to the executable location
+WORKDIR /free5gc/${F5GC_MODULE}
+
+# Update links
+RUN ldconfig

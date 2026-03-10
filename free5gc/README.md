@@ -28,11 +28,6 @@ docker-compose build
 sudo docker-compose up # add -d to run in background mode
 ```
 
-Destroy the established container resource after testing:
-```
-docker-compose rm
-```
-
 ## Troubleshooting
 
 Sometimes, you need to drop data from DB:
@@ -60,19 +55,9 @@ You can also refer to this [issue](https://github.com/free5gc/free5gc-compose/is
 
 This [issue](https://github.com/free5gc/free5gc-compose/issues/28) provides detailed steps that might be useful.
 
-## Integration of WebUI with Nginx reverse proxy
-
-Here you can find helpful guidelines on the integration of Nginx reverse proxy to set it in front of the WebUI: https://github.com/free5gc/free5gc-compose/issues/55#issuecomment-1146648600
-
 ## Vagrant Box Option
 
-For Linux kernel version below 5.4 you can setup a working environment using a vagrant box: https://github.com/abousselmi/vagrant-free5gc
-Please refer to [GTP5G kernel module](https://github.com/free5gc/gtp5g) for more information.
-
-## ULCL Configuration 
-You can check the following informations below:
-- [ulcl-example branch](https://github.com/free5gc/free5gc-compose/tree/ulcl-example), or
-- [patch file](https://github.com/ianchen0119/free5gc-compose-ulcl)
+You can setup a working environment without the fuss of updating your kernel version just by using a vagrant box. You can follow the instructions provided here: https://github.com/abousselmi/vagrant-free5gc
 
 ## Reference
 - https://github.com/open5gs/nextepc/tree/master/docker

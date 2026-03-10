@@ -7,14 +7,14 @@ services:
       context: ./nf_upf
       args:
         DEBUG_TOOLS: "false"
-    command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
+    command: bash -c "./upf-iptables.sh && ./free5gc-upfd -f ../config/upfcfg.yaml"
     volumes:
       - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
-      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+      - ./config/upf-iptables.sh:/free5gc/free5gc-upfd/upf-iptables.sh
     cap_add:
       - NET_ADMIN
     networks:
-      privnet:
+      default:
         aliases:
           - upf.free5gc.org
 
@@ -27,7 +27,7 @@ services:
     volumes:
       - dbdata:/data/db
     networks:
-      privnet:
+      default:
         aliases:
           - db
 
@@ -37,7 +37,7 @@ services:
       context: ./nf_nrf
       args:
         DEBUG_TOOLS: "false"
-    command: ./nrf -c ./config/nrfcfg.yaml
+    command: ./nrf -nrfcfg ../config/nrfcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -46,7 +46,7 @@ services:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - nrf.free5gc.org
     depends_on:
@@ -58,7 +58,7 @@ services:
       context: ./nf_amf
       args:
         DEBUG_TOOLS: "false"
-    command: ./amf -c ./config/amfcfg.yaml
+    command: ./amf -amfcfg ../config/amfcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -66,7 +66,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - amf.free5gc.org
     depends_on:
@@ -78,7 +78,7 @@ services:
       context: ./nf_ausf
       args:
         DEBUG_TOOLS: "false"
-    command: ./ausf -c ./config/ausfcfg.yaml
+    command: ./ausf -ausfcfg ../config/ausfcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -86,7 +86,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - ausf.free5gc.org
     depends_on:
@@ -98,7 +98,7 @@ services:
       context: ./nf_nssf
       args:
         DEBUG_TOOLS: "false"
-    command: ./nssf -c ./config/nssfcfg.yaml
+    command: ./nssf -nssfcfg ../config/nssfcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -106,7 +106,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - nssf.free5gc.org
     depends_on:
@@ -118,7 +118,7 @@ services:
       context: ./nf_pcf
       args:
         DEBUG_TOOLS: "false"
-    command: ./pcf -c ./config/pcfcfg.yaml
+    command: ./pcf -pcfcfg ../config/pcfcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -126,7 +126,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - pcf.free5gc.org
     depends_on:
@@ -138,7 +138,7 @@ services:
       context: ./nf_smf
       args:
         DEBUG_TOOLS: "false"
-    command: ./smf -c ./config/smfcfg.yaml -u ./config/uerouting.yaml
+    command: ./smf -smfcfg ../config/smfcfg.yaml -uerouting ../config/uerouting.yaml
     expose:
       - "8000"
     volumes:
@@ -147,7 +147,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - smf.free5gc.org
     depends_on:
@@ -160,7 +160,7 @@ services:
       context: ./nf_udm
       args:
         DEBUG_TOOLS: "false"
-    command: ./udm -c ./config/udmcfg.yaml
+    command: ./udm -udmcfg ../config/udmcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -168,7 +168,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - udm.free5gc.org
     depends_on:
@@ -181,7 +181,7 @@ services:
       context: ./nf_udr
       args:
         DEBUG_TOOLS: "false"
-    command: ./udr -c ./config/udrcfg.yaml
+    command: ./udr -udrcfg ../config/udrcfg.yaml
     expose:
       - "8000"
     volumes:
@@ -190,7 +190,7 @@ services:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      privnet:
+      default:
         aliases:
           - udr.free5gc.org
     depends_on:
@@ -203,16 +203,16 @@ services:
       context: ./nf_n3iwf
       args:
         DEBUG_TOOLS: "false"
-    command: sh -c "./n3iwf-ipsec.sh && ./n3iwf -c ./config/n3iwfcfg.yaml"
+    command: sh -c "./n3iwf-ipsec.sh && ./n3iwf -n3iwfcfg ../config/n3iwfcfg.yaml"
     volumes:
       - ./config/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
-      - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
+      - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf/n3iwf-ipsec.sh
     environment:
       GIN_MODE: release
     cap_add:
       - NET_ADMIN
     networks:
-      privnet:
+      default:
         aliases:
           - n3iwf.free5gc.org
     depends_on:
@@ -226,13 +226,13 @@ services:
       context: ./webui
       args:
         DEBUG_TOOLS: "false"
-    command: ./webui -c ./config/webuicfg.yaml
+    command: ./webui
     volumes:
       - ./config/webuicfg.yaml:/free5gc/config/webuicfg.yaml
     environment:
       - GIN_MODE=release
     networks:
-      privnet:
+      default:
         aliases:
           - webui
     ports:
@@ -241,7 +241,7 @@ services:
       - db
 
 networks:
-  privnet:
+  default:
     name: free5gc-compose_privnet
     ipam:
       driver: default
