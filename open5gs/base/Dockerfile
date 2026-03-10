@@ -60,7 +60,10 @@ RUN apt-get update && \
         libidn11-dev \
         libtalloc-dev
 
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && apt-get install -y nodejs
+RUN apt-get update && apt-get install -y curl xz-utils && \
+    curl -fsSL https://nodejs.org/dist/v14.21.3/node-v14.21.3-linux-x64.tar.xz -o node.tar.xz && \
+    tar -xJf node.tar.xz -C /usr/local --strip-components=1 && \
+    rm node.tar.xz
 
 # Get open5gs code and install
 RUN git clone --recursive -b v2.3.6 https://github.com/open5gs/open5gs && cd open5gs && \
@@ -102,7 +105,10 @@ RUN apt-get update && \
 
 RUN pip3 install click
 
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && apt-get install -y nodejs && \
+RUN apt-get update && apt-get install -y curl xz-utils && \
+    curl -fsSL https://nodejs.org/dist/v14.21.3/node-v14.21.3-linux-x64.tar.xz -o node.tar.xz && \
+    tar -xJf node.tar.xz -C /usr/local --strip-components=1 && \
+    rm node.tar.xz && \
     apt-get remove -y curl && apt-get autoremove -y && apt-get autoclean
 
 RUN update-ca-certificates
