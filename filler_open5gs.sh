@@ -38,8 +38,8 @@ while (i <= $TOTAL_COUNT) {
                 "_id": ObjectId(),      
                 "pcc_rule": [],
                 "ambr": { 
-                    "uplink": { "value": NumberInt(1), "unit": NumberInt(3) }, 
-                    "downlink": { "value": NumberInt(1), "unit": NumberInt(3) } 
+                    "uplink": { "value": NumberInt(4), "unit": NumberInt(3) }, 
+                    "downlink": { "value": NumberInt(4), "unit": NumberInt(3) } 
                 },
                 "qos": { 
                     "index": NumberInt(9), 
