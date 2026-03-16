@@ -64,7 +64,7 @@ for (var i = 1; i <= num_ues; i++) {
         "ueId": ueId,
         "servingPlmnId": plmn,
         "gpsis": [ "msisdn-0900000000" ],
-        "subscribedUeAmbr": { "uplink": "1 Gbps", "downlink": "2 Gbps" },
+        "subscribedUeAmbr": { "uplink": "1 Gbps", "downlink": "1 Gbps" },
         "nssai": {
             "defaultSingleNssais": [ 
                 { "sst": 1, "sd": "010203" }, 
@@ -79,13 +79,13 @@ for (var i = 1; i <= num_ues; i++) {
             "pduSessionTypes": { "defaultSessionType": "IPV4", "allowedSessionTypes": [ "IPV4" ] },
             "sscModes": { "defaultSscMode": "SSC_MODE_1", "allowedSscModes": [ "SSC_MODE_2", "SSC_MODE_3" ] },
             "5gQosProfile": { "5qi": 9, "arp": { "priorityLevel": 8, "preemptCap": "", "preemptVuln": "" }, "priorityLevel": 8 },
-            "sessionAmbr": { "uplink": "1024 Mbps", "downlink": "2048 Mbps" }
+            "sessionAmbr": { "uplink": "1024 Mbps", "downlink": "1024 Mbps" }
         },
         "internet2": {
             "pduSessionTypes": { "defaultSessionType": "IPV4", "allowedSessionTypes": [ "IPV4" ] },
             "sscModes": { "defaultSscMode": "SSC_MODE_1", "allowedSscModes": [ "SSC_MODE_2", "SSC_MODE_3" ] },
             "5gQosProfile": { "5qi": 9, "arp": { "priorityLevel": 8, "preemptCap": "", "preemptVuln": "" }, "priorityLevel": 8 },
-            "sessionAmbr": { "uplink": "1024 Mbps", "downlink": "2048 Mbps" }
+            "sessionAmbr": { "uplink": "1024 Mbps", "downlink": "1024 Mbps" }
         }
     };
 

@@ -39,7 +39,7 @@ while (i <= $TOTAL_COUNT) {
                 "pcc_rule": [],
                 "ambr": { 
                     "uplink": { "value": NumberInt(1), "unit": NumberInt(3) }, 
-                    "downlink": { "value": NumberInt(2), "unit": NumberInt(3) } 
+                    "downlink": { "value": NumberInt(1), "unit": NumberInt(3) } 
                 },
                 "qos": { 
                     "index": NumberInt(9), 
@@ -53,7 +53,7 @@ while (i <= $TOTAL_COUNT) {
         }],
         "ambr": {
             "uplink": { "value": NumberInt(1), "unit": NumberInt(3) },
-            "downlink": { "value": NumberInt(2), "unit": NumberInt(3) }
+            "downlink": { "value": NumberInt(1), "unit": NumberInt(3) }
         },
         "security": {
             "k": "465B5CE8 B199B49F AA5F0A2E E238A6BC",
