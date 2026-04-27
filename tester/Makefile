@@ -50,8 +50,9 @@ monitor-down:
 N ?= 1
 U ?= 100
 T ?= 1000
+S ?= 0
 launch:
-	docker exec $(CONTAINER_NAME) parallel_launcher -n $(N) -u $(U) -t $(T)
+	docker exec $(CONTAINER_NAME) parallel_launcher -n $(N) -u $(U) -t $(T) -s $(S)
 
 # 7. Clean All (Tester, Monitor, and Source Code)
 clean: monitor-down

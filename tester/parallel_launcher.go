@@ -11,6 +11,7 @@ func main() {
 	n := flag.Int("n", 1, "(ueransim-gnb-1 ~ ueransim-gnb-n)")
 	ueCount := flag.Int("u", 100, "number of ue")
 	tempo := flag.Int("t", 1000, "Interval (ms) between launching each UE")
+	sim := flag.Int("s", 0, "ueransim/free-ran-ue")
 	flag.Parse()
 
 	var wg sync.WaitGroup
@@ -19,6 +20,9 @@ func main() {
 	for i := 1; i <= *n; i++ {
 		wg.Add(1)
 		containerName := fmt.Sprintf("ueransim-ueransim-gnb-%d", i)
+		if(*sim == 1) {
+			containerName = fmt.Sprintf("fru-compose-ue-%d", i)
+		}
 		yamlPath := fmt.Sprintf("./config/uecfg.yaml")
 		startimsi := 208930000000001+(i-1)*(*ueCount)
 		go func(name string, path string) {

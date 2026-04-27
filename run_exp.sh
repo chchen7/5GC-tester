@@ -10,10 +10,10 @@ if ! cat /lib/systemd/system/docker.service | grep "$DOCKER_API_TCP" 2>&1 > /dev
     systemctl daemon-reload
     service docker restart
 fi
-simulator=0 # 0: ueransim 1: free-ran-ue
+simulator=1 # 0: ueransim 1: free-ran-ue
 
 
-for e in $(seq 1 5); do
+for e in $(seq 1 3); do
     for c in 0; do
         echo "Run core $c tests (exec $e)"
         for w in 500 400 300 200 100; do
@@ -55,7 +55,7 @@ for e in $(seq 1 5); do
                     docker compose up -d
                 fi
                 cd ..
-                sleep 15
+                sleep 5
 
                 echo ">>> Filling UE data"
                 sudo bash $filler -n $i
@@ -87,21 +87,18 @@ for e in $(seq 1 5); do
                     docker compose -f "$yamlfile" up -d --scale gnb=$i --scale ue=$i
                 fi
                 cd ..
-                if [ "$c" -eq 0 ]; then
-                    timeout 1 docker exec ueransim-ueransim-gnb-1 ./nr-ue -c config/uecfg.yaml
-                fi
                 cd tester
                 echo ">>> Launching $i UEs for $w seconds..."
-                make launch N=$i U=100 T=$w
+                make launch N=$i U=100 T=$w S=$simulator
 
-                sleep 150
+                sleep 120
 
                 cd ..
                 echo ">>> [5/5] Collecting experiment $i data"
                 python3 $load --gnb-start 1 --gnb-count $i
                 mv ue_metrics.csv result-logs-$e-$c-$w-$i.csv
                 docker exec influxdb sh -c "influx query 'from(bucket:\"database\") |> range(start:-5m)' --raw" > result-logs-influxdb-$e-$c-$w-$i.csv
-                read
+
                 echo ">>> Cleaning up old containers and data..."
                 cd $sim
                 docker compose -f "$yamlfile" down
@@ -122,7 +119,7 @@ for e in $(seq 1 5); do
                 docker network prune -f
                 cd ..
                 sudo rm -rf open5gs/log
-                sleep 15
+                sleep 5
             done
         done
     done
