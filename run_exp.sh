@@ -13,11 +13,11 @@ fi
 simulator=0 # 0: ueransim 1: free-ran-ue
 
 
-for e in $(seq 1 10); do
-    for c in 0 1; do
+for e in $(seq 1 5); do
+    for c in 0; do
         echo "Run core $c tests (exec $e)"
-        for w in 0; do
-            for i in 11; do
+        for w in 500 400 300 200 100; do
+            for i in 1 3 5 7 9 11; do
                 echo "Running experiment $i (w=$w)"
                 if [ "$c" -eq 0 ]; then
                     yamlfile="./docker-compose-free5gc.yaml"
