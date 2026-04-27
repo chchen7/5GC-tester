@@ -1,0 +1,47 @@
+services:
+  gnb:
+    image: alonza0314/free-ran-ue:latest
+    command: ./gnb_init.sh
+    volumes:
+      - ./config/gnbcfg-open5gs.yaml:/free-ran-ue/gnbcfg.yaml
+      - ./gnb_init.sh:/free-ran-ue/gnb_init.sh
+    networks:
+      default:
+        aliases:
+          - gnb.open5gs.org
+      ran-ue:
+        aliases:
+          - gnb.ranue
+
+  ue:
+    image: alonza0314/free-ran-ue:latest
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./config/uecfg-open5gs.yaml:/free-ran-ue/uecfg.yaml
+      - ./launch_ue.sh:/free-ran-ue/launch_ue.sh
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - dev/net/tun
+    networks:
+      ran-ue:
+        aliases:
+          - ue.ranue
+    depends_on:
+      - gnb
+
+networks:
+  default:
+    external: true
+    name: docker_open5gs_default
+
+  ran-ue:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.2.0/24
+    driver_opts:
+      com.docker.network.bridge.name: docker-ran-ue
+
+volumes:
+  dbdata:

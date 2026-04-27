@@ -1,0 +1,61 @@
+name: Auto Release from free-ran-ue
+
+on:
+  schedule:
+    - cron: '14 19 * * *'
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: alonza0314/free-ran-ue
+  UPSTREAM_REPO: free-ran-ue/free-ran-ue
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Get latest release from upstream
+        id: upstream-release
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ env.UPSTREAM_REPO }}/releases/latest | jq -r '.tag_name')
+          echo "latest_version=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          echo "Get latest release from upstream, version: $LATEST_RELEASE"
+
+      - name: Check if we already built this version
+        id: check-existing
+        run: |
+          IMAGE_TAG="${{ steps.upstream-release.outputs.latest_version }}"
+
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://hub.docker.com/v2/repositories/${{ env.IMAGE_NAME }}/tags/$IMAGE_TAG)
+          
+          if [ "$STATUS" = "200" ]; then
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "version $IMAGE_TAG already exists, skip build"
+          else
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "version $IMAGE_TAG not exists, prepare to build"
+          fi
+
+      - name: Log in to Docker Hub
+        if: steps.check-existing.outputs.should_build == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        if: steps.check-existing.outputs.should_build == 'true'
+        run: |
+          ./script/release-script/build.sh ${{ steps.upstream-release.outputs.latest_version }}
+
+      - name: Release Docker image
+        if: steps.check-existing.outputs.should_build == 'true'
+        run: |
+          ./script/release-script/release.sh ${{ steps.upstream-release.outputs.latest_version }}

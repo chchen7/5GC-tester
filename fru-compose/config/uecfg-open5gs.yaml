@@ -1,0 +1,44 @@
+ue:
+  ranControlPlaneIp: gnb.ranue
+  ranDataPlaneIp: gnb.ranue
+
+  ranControlPlanePort: 31413
+  ranDataPlanePort: 31414
+
+  plmnId:
+    mcc: "208"
+    mnc: "93"
+  msin: "0000000001"
+
+  authenticationSubscription:
+    encPermanentKey: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+    encOpcKey: "E8ED289DEBA952E4283B54E88E6183CA"
+    authenticationManagementField: "8000"
+    sequenceNumber: "000000000023"
+
+  integrityAlgorithm:
+    nia0: false
+    nia1: false
+    nia2: true
+    nia3: false
+  cipheringAlgorithm:
+    nea0: true
+    nea1: false
+    nea2: false
+    nea3: false
+
+  pduSession:
+    dnn: "default"
+    snssai:
+      sst: "1"
+      sd: "000001"
+
+  accessType: "3GPP_ACCESS" # 3GPP_ACCESS, NON_3GPP_ACCESS
+
+  nrdc:
+    enable: false
+
+  ueTunnelDevice: "ueTun"
+
+logger:
+  level: "test" # error, warn, info, debug, trace

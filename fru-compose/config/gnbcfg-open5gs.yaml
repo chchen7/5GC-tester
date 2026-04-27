@@ -1,0 +1,40 @@
+gnb:
+  amfN2Ip: "172.22.0.10"
+  ranN2Ip: gnb.open5gs.org
+  upfN3Ip: "172.22.0.8"
+  ranN3Ip: gnb.open5gs.org
+
+  ranControlPlaneIp: gnb.ranue
+  ranDataPlaneIp: gnb.ranue
+
+  amfN2Port: 38412
+  ranN2Port: 38413
+  upfN3Port: 2152
+  ranN3Port: 2152
+
+  ranControlPlanePort: 31413
+  ranDataPlanePort: 31414
+
+  gnbId: "000314"
+  gnbName: "gNB"
+
+  plmnId:
+    mcc: "208"
+    mnc: "93"
+
+  tai:
+    tac: "000001"
+    broadcastPlmnId:
+      mcc: "208"
+      mnc: "93"
+
+  snssai:
+    sst: "1"
+    sd: "000001"
+
+  api:
+    ip: gnb.open5gs.org
+    port: 40104
+
+logger:
+  level: "test" # error, warn, info, debug, trace, test
