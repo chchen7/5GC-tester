@@ -1,0 +1,461 @@
+diff --git a/go.mod b/go.mod
+index c9d1d02..7a2b33b 100644
+--- a/go.mod
++++ b/go.mod
+@@ -21,6 +21,7 @@ require (
+ 	github.com/stretchr/testify v1.10.0
+ 	github.com/urfave/cli/v2 v2.27.7
+ 	go.uber.org/mock v0.4.0
++	golang.org/x/sync v0.19.0
+ 	gopkg.in/yaml.v2 v2.4.0
+ )
+ 
+@@ -81,3 +82,5 @@ require (
+ 	google.golang.org/protobuf v1.36.1 // indirect
+ 	gopkg.in/yaml.v3 v3.0.1 // indirect
+ )
++
++replace github.com/free5gc/openapi => ../../openapi
+diff --git a/go.sum b/go.sum
+index c3fc465..acbb313 100644
+--- a/go.sum
++++ b/go.sum
+@@ -25,8 +25,6 @@ github.com/free5gc/nas v1.2.2 h1:r2+9CHY1TRfTM/X2Pc+vBizeqweUJRuLo1DGub1vk5s=
+ github.com/free5gc/nas v1.2.2/go.mod h1:y3f4YCGsvQOqQx8h+4MH22k0C8XaopK2ZP/F7qAW98k=
+ github.com/free5gc/ngap v1.1.2 h1:AA+s9+eaE8fSTnmBbh1xiD3VPaszonCd7AQJGKX5PHM=
+ github.com/free5gc/ngap v1.1.2/go.mod h1:4HYtB+msoTBc3cEPlSr4ZUUHn3BFZhdPuVASERMzVeI=
+-github.com/free5gc/openapi v1.2.3 h1:w4TmYBR8TUE4ZgKo7eiMZbyZPURSBFlMWiFeX+OsiA8=
+-github.com/free5gc/openapi v1.2.3/go.mod h1:fLvaBtUZrvrzkKrmn5Aza+JNbpWnp3kxKixu6kLSD3k=
+ github.com/free5gc/pfcp v1.1.1 h1:ew3G7ybvyn5jTEa8BASM2Tk+E1m8Hl92c3J6PyTGdJo=
+ github.com/free5gc/pfcp v1.1.1/go.mod h1:QmqXS6WmU5UeAa/Ucfxf01zBTaZhniATrNzUh2um12A=
+ github.com/free5gc/tlv v1.1.0 h1:1pUjI0f+xD4S4a1TJ/bFLvgIwJ5k6G9rv/UETtgVw70=
+@@ -166,6 +164,8 @@ golang.org/x/net v0.47.0 h1:Mx+4dIFzqraBXUugkia1OOvlD6LemFo1ALMHjrXDOhY=
+ golang.org/x/net v0.47.0/go.mod h1:/jNxtkgq5yWUGYkaZGqo27cfGZ1c5Nen03aYrrKpVRU=
+ golang.org/x/oauth2 v0.27.0 h1:da9Vo7/tDv5RH/7nZDz1eMGS/q1Vv1N/7FCrBhI9I3M=
+ golang.org/x/oauth2 v0.27.0/go.mod h1:onh5ek6nERTohokkhCD/y2cV4Do3fxFHFuAejCkRWT8=
++golang.org/x/sync v0.19.0 h1:vV+1eWNmZ5geRlYjzm2adRgW2/mcpevXNg50YZtPCE4=
++golang.org/x/sync v0.19.0/go.mod h1:9KTHXmSnoGruLpwFjVSX0lNNA75CykiMECbovNTZqGI=
+ golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+ golang.org/x/sys v0.5.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+ golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+diff --git a/internal/context/user_plane_information.go b/internal/context/user_plane_information.go
+index de49037..38ad489 100644
+--- a/internal/context/user_plane_information.go
++++ b/internal/context/user_plane_information.go
+@@ -571,20 +571,26 @@ func (upi *UserPlaneInformation) GetUPFNodeByIP(ip string) *UPNode {
+ }
+ 
+ func (upi *UserPlaneInformation) GetUPFIDByIP(ip string) string {
++	upi.Mu.RLock()
++	defer upi.Mu.RUnlock()
+ 	return upi.UPFsIPtoID[ip]
+ }
+ 
+ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNN(selection *UPFSelectionParams) (path UPPath) {
++	upi.Mu.RLock()
+ 	path, pathExist := upi.DefaultUserPlanePath[selection.String()]
+ 	logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNN")
+ 	logger.CtxLog.Traceln("selection: ", selection.String())
++	upi.Mu.RUnlock()
+ 	if pathExist {
+ 		return
+ 	} else {
+ 		pathExist = upi.GenerateDefaultPath(selection)
++		upi.Mu.RLock()
+ 		if pathExist {
+ 			return upi.DefaultUserPlanePath[selection.String()]
+ 		}
++		upi.Mu.RUnlock()
+ 	}
+ 	return nil
+ }
+@@ -593,17 +599,21 @@ func (upi *UserPlaneInformation) GetDefaultUserPlanePathByDNNAndUPF(selection *U
+ 	upf *UPNode,
+ ) (path UPPath) {
+ 	nodeID := upf.NodeID.ResolveNodeIdToIp().String()
+-
++	upi.Mu.RLock()
+ 	if upi.DefaultUserPlanePathToUPF[selection.String()] != nil {
+ 		path, pathExist := upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
+ 		logger.CtxLog.Traceln("In GetDefaultUserPlanePathByDNNAndUPF")
+ 		logger.CtxLog.Traceln("selection: ", selection.String())
+ 		logger.CtxLog.Traceln("pathExist: ", pathExist)
+ 		if pathExist {
++			upi.Mu.RUnlock()
+ 			return path
+ 		}
+ 	}
++	upi.Mu.RUnlock()
+ 	if pathExist := upi.GenerateDefaultPathToUPF(selection, upf); pathExist {
++		upi.Mu.RLock()
++		defer upi.Mu.RUnlock()
+ 		return upi.DefaultUserPlanePathToUPF[selection.String()][nodeID]
+ 	}
+ 	return nil
+@@ -652,7 +662,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
+ 	var source *UPNode
+ 	var destinations, path []*UPNode
+ 	var pathExist bool
+-
++	upi.Mu.RLock()
+ 	destinations = upi.selectMatchUPF(selection)
+ 
+ 	if len(destinations) == 0 {
+@@ -669,7 +679,12 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
+ 		}
+ 		logger.CtxLog.Tracef("=================================")
+ 	}
+-
++	needUnlock := true
++	defer func() {
++		if needUnlock {
++			upi.Mu.RUnlock()
++		}
++	}()
+ 	// Run DFS
+ 	for _, node := range upi.AccessNetwork {
+ 		visited := make(map[*UPNode]bool)
+@@ -682,10 +697,14 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
+ 			path, pathExist = getPathBetween(source, destinations[0], visited, selection)
+ 
+ 			if pathExist {
++				upi.Mu.RUnlock()
++				needUnlock = false
+ 				if path[0].Type == UPNODE_AN {
+ 					path = path[1:]
+ 				}
++				upi.Mu.Lock()
+ 				upi.DefaultUserPlanePath[selection.String()] = path
++				upi.Mu.Unlock()
+ 				break
+ 			}
+ 		}
+@@ -711,7 +730,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
+ 
+ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
+ 	var source *UPNode
+-
++	upi.Mu.RLock()
+ 	for _, node := range upi.AccessNetwork {
+ 		if node.Type == UPNODE_AN {
+ 			source = node
+@@ -732,15 +751,17 @@ func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectio
+ 	}
+ 
+ 	path, pathExist := getPathBetween(source, destination, visited, selection)
+-
++	upi.Mu.RUnlock()
+ 	if pathExist {
+ 		if path[0].Type == UPNODE_AN {
+ 			path = path[1:]
+ 		}
++		upi.Mu.Lock()
+ 		if upi.DefaultUserPlanePathToUPF[selection.String()] == nil {
+ 			upi.DefaultUserPlanePathToUPF[selection.String()] = make(map[string][]*UPNode)
+ 		}
+ 		upi.DefaultUserPlanePathToUPF[selection.String()][destination.NodeID.ResolveNodeIdToIp().String()] = path
++		upi.Mu.Unlock()
+ 	}
+ 
+ 	return pathExist
+@@ -873,6 +894,8 @@ func (upi *UserPlaneInformation) selectUPPathSource() (*UPNode, error) {
+ 
+ // SelectUPFAndAllocUEIP will return anchor UPF, allocated UE IP and use/not use static IP
+ func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionParams) (*UPNode, net.IP, bool) {
++	upi.Mu.RLock()
++	defer upi.Mu.RUnlock()
+ 	source, err := upi.selectUPPathSource()
+ 	if err != nil {
+ 		return nil, nil, false
+diff --git a/internal/sbi/consumer/nrf_service.go b/internal/sbi/consumer/nrf_service.go
+index ba60317..2bc091c 100644
+--- a/internal/sbi/consumer/nrf_service.go
++++ b/internal/sbi/consumer/nrf_service.go
+@@ -8,6 +8,7 @@ import (
+ 	"time"
+ 
+ 	"github.com/pkg/errors"
++	"golang.org/x/sync/singleflight"
+ 
+ 	"github.com/free5gc/openapi"
+ 	"github.com/free5gc/openapi/models"
+@@ -19,6 +20,11 @@ import (
+ 	sbi_metrics "github.com/free5gc/util/metrics/sbi"
+ )
+ 
++type discCacheItem struct {
++	result *models.SearchResult
++	expiry time.Time
++}
++
+ type nnrfService struct {
+ 	consumer *Consumer
+ 
+@@ -27,6 +33,9 @@ type nnrfService struct {
+ 
+ 	NFManagementClients map[string]*NFManagement.APIClient
+ 	NFDiscoveryClients  map[string]*NFDiscovery.APIClient
++
++	discCache sync.Map
++	discGroup singleflight.Group
+ }
+ 
+ func (s *nnrfService) getNFManagementClient(uri string) *NFManagement.APIClient {
+@@ -188,25 +197,60 @@ func (s *nnrfService) SendSearchNFInstances(
+ 	param *NFDiscovery.SearchNFInstancesRequest,
+ ) (*models.SearchResult, error) {
+ 	// Set client and set url
+-	smfContext := s.consumer.Context()
+-	client := s.getNFDiscoveryClient(smfContext.NrfUri)
++	cacheKey := string(targetNfType)
+ 
+-	if client == nil {
+-		return nil, openapi.ReportError("nrf not found")
++	if val, ok := s.discCache.Load(cacheKey); ok {
++		item := val.(*discCacheItem)
++		if time.Now().Before(item.expiry) {
++			return item.result, nil
++		}
+ 	}
+ 
+-	ctx, _, err := smfContext.GetTokenCtx(models.ServiceName_NNRF_DISC, models.NrfNfManagementNfType_NRF)
++	resInterface, err, _ := s.discGroup.Do(cacheKey, func() (interface{}, error) {
++		if val, ok := s.discCache.Load(cacheKey); ok {
++			item := val.(*discCacheItem)
++			if time.Now().Before(item.expiry) {
++				return item.result, nil
++			}
++		}
++
++		smfContext := s.consumer.Context()
++		client := s.getNFDiscoveryClient(smfContext.NrfUri)
++
++		if client == nil {
++			return nil, openapi.ReportError("nrf not found")
++		}
++
++		ctx, _, err := smfContext.GetTokenCtx(models.ServiceName_NNRF_DISC, models.NrfNfManagementNfType_NRF)
++		if err != nil {
++			return nil, err
++		}
++
++		res, err := client.NFInstancesStoreApi.SearchNFInstances(ctx, param)
++		if err != nil || res == nil {
++			logger.ConsumerLog.Errorf("SearchNFInstances failed: %+v", err)
++			return nil, err
++		}
++
++		result := res.SearchResult
++		ttl := int32(600)
++		if result.ValidityPeriod != 0 {
++			ttl = result.ValidityPeriod
++		}
++
++		s.discCache.Store(cacheKey, &discCacheItem{
++			result: &result,
++			expiry: time.Now().Add(time.Duration(ttl) * time.Second),
++		})
++
++		return &result, nil
++	})
++
+ 	if err != nil {
+ 		return nil, err
+ 	}
+ 
+-	res, err := client.NFInstancesStoreApi.SearchNFInstances(ctx, param)
+-	if err != nil || res == nil {
+-		logger.ConsumerLog.Errorf("SearchNFInstances failed: %+v", err)
+-		return nil, err
+-	}
+-	result := res.SearchResult
+-	return &result, err
++	return resInterface.(*models.SearchResult), nil
+ }
+ 
+ func (s *nnrfService) NFDiscoveryUDM(ctx context.Context) (
+@@ -219,13 +263,9 @@ func (s *nnrfService) NFDiscoveryUDM(ctx context.Context) (
+ 		RequesterNfType: &requesterNfType,
+ 	}
+ 
+-	smfContext := s.consumer.Context()
+-
+-	client := s.getNFDiscoveryClient(smfContext.NrfUri)
+-	// Check data
+-	res, localErr := client.NFInstancesStoreApi.SearchNFInstances(ctx, request)
++	res, localErr := s.SendSearchNFInstances(s.consumer.Context().NrfUri, targetNfType, requesterNfType, request)
+ 	if res != nil {
+-		result = res.SearchResult
++		result = *res
+ 	}
+ 	return result, localErr
+ }
+@@ -240,13 +280,9 @@ func (s *nnrfService) NFDiscoveryPCF(ctx context.Context) (
+ 		RequesterNfType: &requesterNfType,
+ 	}
+ 
+-	smfContext := s.consumer.Context()
+-
+-	client := s.getNFDiscoveryClient(smfContext.NrfUri)
+-	// Check data
+-	res, localErr := client.NFInstancesStoreApi.SearchNFInstances(ctx, request)
++	res, localErr := s.SendSearchNFInstances(s.consumer.Context().NrfUri, targetNfType, requesterNfType, request)
+ 	if res != nil {
+-		result = res.SearchResult
++		result = *res
+ 	}
+ 	return result, localErr
+ }
+@@ -262,13 +298,9 @@ func (s *nnrfService) NFDiscoveryAMF(smContext *smf_context.SMContext, ctx conte
+ 		TargetNfInstanceId: &smContext.ServingNfId,
+ 	}
+ 
+-	smfContext := s.consumer.Context()
+-
+-	client := s.getNFDiscoveryClient(smfContext.NrfUri)
+-	// Check data
+-	res, localErr := client.NFInstancesStoreApi.SearchNFInstances(ctx, request)
++	res, localErr := s.SendSearchNFInstances(s.consumer.Context().NrfUri, targetNfType, requesterNfType, request)
+ 	if res != nil {
+-		result = res.SearchResult
++		result = *res
+ 	}
+ 	return result, localErr
+ }
+@@ -391,22 +423,16 @@ func (s *nnrfService) CHFSelection(smContext *smf_context.SMContext) error {
+ 		// Supi:            &smContext.Supi,
+ 	}
+ 
+-	ctx, _, err := s.consumer.Context().GetTokenCtx(models.ServiceName_NNRF_DISC, models.NrfNfManagementNfType_NRF)
+-	if err != nil {
+-		return err
+-	}
++	res, err := s.SendSearchNFInstances(s.consumer.Context().NrfUri, targetNfType, requesterNfType, request)
+ 
+-	client := s.getNFDiscoveryClient(s.consumer.Context().NrfUri)
+-	// Check data
+-	res, err := client.NFInstancesStoreApi.SearchNFInstances(ctx, request)
+ 	if err != nil {
+ 		logger.ConsumerLog.Errorf("SearchNFInstances failed: %+v", err)
+ 		return err
+ 	}
+ 
+ 	// Select CHF from available CHF
+-	if res != nil && len(res.SearchResult.NfInstances) > 0 {
+-		smContext.SelectedCHFProfile = res.SearchResult.NfInstances[0]
++	if res != nil && len(res.NfInstances) > 0 {
++		smContext.SelectedCHFProfile = res.NfInstances[0]
+ 		return nil
+ 	}
+ 	return fmt.Errorf("no CHF found in CHFSelection")
+@@ -414,7 +440,7 @@ func (s *nnrfService) CHFSelection(smContext *smf_context.SMContext) error {
+ 
+ // PCFSelection will select PCF for this SM Context
+ func (s *nnrfService) PCFSelection(smContext *smf_context.SMContext) error {
+-	ctx, _, errToken := s.consumer.Context().GetTokenCtx(models.ServiceName_NNRF_DISC, "NRF")
++	_, _, errToken := s.consumer.Context().GetTokenCtx(models.ServiceName_NNRF_DISC, "NRF")
+ 	if errToken != nil {
+ 		return errToken
+ 	}
+@@ -430,16 +456,15 @@ func (s *nnrfService) PCFSelection(smContext *smf_context.SMContext) error {
+ 		request.PreferredLocality = &s.consumer.Context().Locality
+ 	}
+ 
+-	client := s.getNFDiscoveryClient(s.consumer.Context().NrfUri)
+-	// Check data
+-	res, err := client.NFInstancesStoreApi.SearchNFInstances(ctx, request)
++	res, err := s.SendSearchNFInstances(s.consumer.Context().NrfUri, targetNfType, requesterNfType, request)
++
+ 	if err != nil {
+ 		return err
+ 	}
+ 
+ 	// Select PCF from available PCF
+ 
+-	smContext.SelectedPCFProfile = res.SearchResult.NfInstances[0]
++	smContext.SelectedPCFProfile = res.NfInstances[0]
+ 
+ 	return nil
+ }
+diff --git a/internal/sbi/processor/pdu_session.go b/internal/sbi/processor/pdu_session.go
+index 44d8521..1ef2f41 100644
+--- a/internal/sbi/processor/pdu_session.go
++++ b/internal/sbi/processor/pdu_session.go
+@@ -69,10 +69,6 @@ func (p *Processor) HandlePDUSessionSMContextCreate(
+ 		}
+ 	}()
+ 
+-	upi := smf_context.GetUserPlaneInformation()
+-	upi.Mu.RLock()
+-	defer upi.Mu.RUnlock()
+-
+ 	// DNN Information from config
+ 	smContext.DNNInfo = smf_context.RetrieveDnnInformation(smContext.SNssai, smContext.Dnn)
+ 	if smContext.DNNInfo == nil {
+@@ -180,25 +176,27 @@ func (p *Processor) HandlePDUSessionSMContextCreate(
+ 	}
+ 
+ 	// BSF-aware PCF selection: first check BSF for existing PCF binding
+-	if bsfErr := p.Consumer().BSFAwarePCFSelection(smContext); bsfErr != nil {
+-		smContext.Log.Errorln("PCF selection error (with BSF integration):", bsfErr)
+-		// Fallback to traditional PCF selection if BSF integration fails
+-		if fallbackErr := p.Consumer().PCFSelection(smContext); fallbackErr != nil {
+-			smContext.Log.Errorln("fallback PCF selection error:", fallbackErr)
+-		}
++	//if bsfErr := p.Consumer().BSFAwarePCFSelection(smContext); bsfErr != nil {
++	//smContext.Log.Errorln("PCF selection error (with BSF integration):", bsfErr)
++	// Fallback to traditional PCF selection if BSF integration fails
++	if fallbackErr := p.Consumer().PCFSelection(smContext); fallbackErr != nil {
++		smContext.Log.Errorln("fallback PCF selection error:", fallbackErr)
+ 	}
++	//}
+ 
+ 	smPolicyID, smPolicyDecision, err := p.Consumer().SendSMPolicyAssociationCreate(smContext)
+ 	if err != nil {
+ 		if openapiError, ok := err.(openapi.GenericOpenAPIError); ok {
+-			problemDetails := openapiError.Model().(models.ProblemDetails)
+-			smContext.Log.Errorln("setup sm policy association failed:", err, problemDetails)
+-			smContext.SetState(smf_context.InActive)
+-			if problemDetails.Cause == "USER_UNKNOWN" {
+-				p.makeEstRejectResAndReleaseSMContext(c, smContext,
+-					nasMessage.Cause5GSMRequestRejectedUnspecified,
+-					&smf_errors.SubscriptionDenied)
+-				return
++			if problemDetails, okk := openapiError.Model().(models.ProblemDetails); okk {
++				smContext.Log.Errorln("suc change")
++				smContext.Log.Errorln("setup sm policy association failed:", err, problemDetails)
++				smContext.SetState(smf_context.InActive)
++				if problemDetails.Cause == "USER_UNKNOWN" {
++					p.makeEstRejectResAndReleaseSMContext(c, smContext,
++						nasMessage.Cause5GSMRequestRejectedUnspecified,
++						&smf_errors.SubscriptionDenied)
++					return
++				}
+ 			}
+ 		}
+ 		p.makeEstRejectResAndReleaseSMContext(c, smContext,
+@@ -209,13 +207,13 @@ func (p *Processor) HandlePDUSessionSMContextCreate(
+ 	smContext.SMPolicyID = smPolicyID
+ 
+ 	// PDU　session create is a charging event
+-	logger.PduSessLog.Infof("CHF Selection for SMContext SUPI[%s] PDUSessionID[%d]\n",
++	/*logger.PduSessLog.Infof("CHF Selection for SMContext SUPI[%s] PDUSessionID[%d]\n",
+ 		smContext.Supi, smContext.PDUSessionID)
+ 	if err = p.Consumer().CHFSelection(smContext); err != nil {
+ 		logger.PduSessLog.Errorln("chf selection error:", err)
+ 	} else {
+ 		p.CreateChargingSession(smContext)
+-	}
++	}*/
+ 
+ 	// Update SessionRule from decision
+ 	if err = smContext.ApplySessionRules(smPolicyDecision); err != nil {
+@@ -311,8 +309,6 @@ func (p *Processor) HandlePDUSessionSMContextUpdate(
+ 	smContext := smf_context.GetSMContextByRef(smContextRef)
+ 
+ 	upi := smf_context.GetUserPlaneInformation()
+-	upi.Mu.RLock()
+-	defer upi.Mu.RUnlock()
+ 
+ 	if smContext == nil {
+ 		logger.PduSessLog.Warnf("SMContext[%s] is not found", smContextRef)
