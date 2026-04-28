@@ -43,7 +43,7 @@ for core_idx, core in enumerate(cores):
             all_dataplaneready = []
             
             for exe in execs:
-                one_exec_data = np.full(MAX_UE_COUNT, np.nan)
+                val_map = {i: [] for i in range(MAX_UE_COUNT)}
                 file_path = base_filename.format(exe, core, delay, exp)
                 
                 if os.path.exists(file_path):
@@ -60,12 +60,12 @@ for core_idx, core in enumerate(cores):
                                 dp_raw = row.get('DataPlaneReady', "").strip()
                                 if dp_raw != "" and dp_raw is not None:
                                     try:
-                                        one_exec_data[ue_idx] = float(dp_raw)
+                                        val_map[ue_idx].append(float(dp_raw))
                                     except ValueError:
                                         pass
                     except Exception:
                         pass
-                
+                one_exec_data = [np.mean(val_map[i]) if val_map[i] else np.nan for i in range(MAX_UE_COUNT)]
                 all_dataplaneready.append(one_exec_data)
 
             with np.errstate(divide='ignore', invalid='ignore'):
