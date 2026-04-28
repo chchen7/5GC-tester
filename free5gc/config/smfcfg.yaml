@@ -90,9 +90,9 @@ configuration:
     maxRetryTimes: 3 # the max number of retransmission
   nrfUri: http://nrf.free5gc.org:8000 # a valid URI of NRF
   nrfCertPem: cert/nrf.pem # NRF Certificate
-  urrPeriod: 10 # default usage report period in seconds
-  urrThreshold: 1000 # default usage report threshold in bytes
-  requestedUnit: 1000
+  urrPeriod: 10000 # default usage report period in seconds
+  urrThreshold: 1000000000 # default usage report threshold in bytes
+  requestedUnit: 1000000000
 
   # Metrics configuration
   # If using the same bindingIPv4 as the sbi server, make sure that the ports are different
